@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "install": "node-gyp rebuild",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node test.js"
   },
   "keywords": [
     "grep",
@@ -29,5 +29,8 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/GirkovArpa/node-memory-process-scanner"
+  },
+  "devDependencies": {
+    "node-gyp": "^9.0.0"
   }
 }

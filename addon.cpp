@@ -44,10 +44,8 @@ const char* stringScan(const char* windowTitle, const char* cstr_regexString) {
     }
     unsigned char* p = NULL;
     MEMORY_BASIC_INFORMATION info;
-    int idx = 0;
     for (p = NULL; VirtualQueryEx(pHandle, p, &info, sizeof(info)) == sizeof(info); p += info.RegionSize) {
         if (info.State == MEM_COMMIT && (info.Type == MEM_MAPPED || info.Type == MEM_PRIVATE)) {
-            ++idx;
             SIZE_T bytes_read;
             buffer.resize(info.RegionSize);
             ReadProcessMemory(pHandle, p, &buffer[0], info.RegionSize, &bytes_read);
