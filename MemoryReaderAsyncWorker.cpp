@@ -3,8 +3,8 @@
 #include <napi.h>
 #include <windows.h>
 
-MemoryReaderAsyncWorker::MemoryReaderAsyncWorker(Napi::Env &env, std::string windowTitle, std::string regexString)
-    : Napi::AsyncWorker(env), regexString(regexString), windowTitle(windowTitle), deferred(Napi::Promise::Deferred::New(env)){};
+MemoryReaderAsyncWorker::MemoryReaderAsyncWorker(Napi::Env &env, std::string windowTitle, std::string regexString, Napi::Promise::Deferred &deferred)
+    : Napi::AsyncWorker(env), regexString(regexString), windowTitle(windowTitle), deferred(deferred) {};
 
 void MemoryReaderAsyncWorker::Execute()
 {
@@ -74,8 +74,6 @@ void MemoryReaderAsyncWorker::OnError(Napi::Error const &error)
 {
     deferred.Reject(error.Value());
 };
-
-Napi::Promise MemoryReaderAsyncWorker::GetPromise() { return deferred.Promise(); }
 
 std::string windowTitle;
 std::string regexString;

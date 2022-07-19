@@ -7,13 +7,12 @@ Napi::Value runMemoryReaderAsyncWorker(const CallbackInfo &info)
     std::string windowTitle = info[0].ToString().Utf8Value();
     std::string regexString = info[1].ToString().Utf8Value();
     
-    MemoryReaderAsyncWorker *asyncWorker = new MemoryReaderAsyncWorker(env, windowTitle, regexString);
-
-    auto promise = asyncWorker->GetPromise();
-
+    Napi::Promise::Deferred deferred = Napi::Promise::Deferred::New(env);
+    
+    MemoryReaderAsyncWorker *asyncWorker = new MemoryReaderAsyncWorker(env, windowTitle, regexString, deferred);
     asyncWorker->Queue();
 
-    return promise;
+    return deferred.Promise();
 };
 
 
