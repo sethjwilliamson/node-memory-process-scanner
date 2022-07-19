@@ -1,37 +1,31 @@
 #include "MemoryReaderAsyncWorker.h"
-#include <chrono>
-#include <thread>
-#include <psapi.h>
-#include <iostream>
-#include <vector>
 #include <regex>
-#include <algorithm>
 #include <napi.h>
 #include <windows.h>
 
-MemoryReaderAsyncWorker::MemoryReaderAsyncWorker(std::string windowTitle, std::string regexString, Function &callback)
-    : AsyncWorker(callback), regexString(regexString), windowTitle(windowTitle){};
+MemoryReaderAsyncWorker::MemoryReaderAsyncWorker(Napi::Env &env, std::string windowTitle, std::string regexString)
+    : Napi::AsyncWorker(env), regexString(regexString), windowTitle(windowTitle), deferred(Napi::Promise::Deferred::New(env)){};
 
 void MemoryReaderAsyncWorker::Execute()
 {
-    std::regex regex(this->regexString);
+    std::regex regex(regexString);
     std::vector<char> buffer;
     DWORD pID;
-    HWND hwnd = FindWindowA(NULL, this->windowTitle.c_str());
+    HWND hwnd = FindWindowA(NULL, windowTitle.c_str());
     if (!hwnd)
     {
-        this->returnValue = "FindWindowA ERROR";
+        returnValue = "FindWindowA ERROR";
         return;
     }
     if (!GetWindowThreadProcessId(hwnd, &pID))
     {
-        this->returnValue = "GetWindowThreadProcessId ERROR";
+        returnValue = "GetWindowThreadProcessId ERROR";
         return;
     }
     HANDLE pHandle = OpenProcess(PROCESS_ALL_ACCESS, FALSE, pID);
     if (!pHandle)
     {
-        this->returnValue = "OpenProcess ERROR";
+        returnValue = "OpenProcess ERROR";
         return;
     }
     unsigned char *p = NULL;
@@ -51,7 +45,7 @@ void MemoryReaderAsyncWorker::Execute()
 
             string.erase(
                 remove_if(string.begin(), string.end(), [](char c)
-                          { return !(c >= 32 && c < 126); }),
+                            { return !(c >= 32 && c < 126); }),
                 string.end());
 
             std::sregex_iterator it(string.begin(), string.end(), regex);
@@ -60,18 +54,30 @@ void MemoryReaderAsyncWorker::Execute()
             {
                 std::smatch match = *it;
                 std::string MATCH = match[1].str();
-                
-                this->returnValue = _strdup(MATCH.c_str());
+
+                returnValue = _strdup(MATCH.c_str());
                 return;
             }
         }
     }
 
-    this->returnValue = "MATCH NOT FOUND";
+    returnValue = "MATCH NOT FOUND";
     return;
 };
 
 void MemoryReaderAsyncWorker::OnOK()
 {
-    Callback().Call({Env().Null(), String::New(Env(), this->returnValue)});
+    deferred.Resolve(Napi::String::New(Env(), returnValue));
 };
+
+void MemoryReaderAsyncWorker::OnError(Napi::Error const &error)
+{
+    deferred.Reject(error.Value());
+};
+
+Napi::Promise MemoryReaderAsyncWorker::GetPromise() { return deferred.Promise(); }
+
+std::string windowTitle;
+std::string regexString;
+Napi::Promise::Deferred deferred;
+const char *returnValue;

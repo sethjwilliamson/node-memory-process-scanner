@@ -1,15 +1,21 @@
 #include "MemoryReaderAsyncWorker.h"
 
-Value runMemoryReaderAsyncWorker(const CallbackInfo &info)
+Napi::Value runMemoryReaderAsyncWorker(const CallbackInfo &info)
 {
+    Napi::Env env = info.Env();
+
     std::string windowTitle = info[0].ToString().Utf8Value();
     std::string regexString = info[1].ToString().Utf8Value();
-    Function callback = info[2].As<Function>();
-    MemoryReaderAsyncWorker *asyncWorker = new MemoryReaderAsyncWorker(windowTitle, regexString, callback);
+    
+    MemoryReaderAsyncWorker *asyncWorker = new MemoryReaderAsyncWorker(env, windowTitle, regexString);
+
+    auto promise = asyncWorker->GetPromise();
+
     asyncWorker->Queue();
-    std::string msg = "Test1";
-    return String::New(info.Env(), msg.c_str());
+
+    return promise;
 };
+
 
 Object Init(Env env, Object exports)
 {
