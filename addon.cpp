@@ -18,7 +18,7 @@ Napi::Value runMemoryReaderAsyncWorker(const CallbackInfo &info)
 
 Object Init(Env env, Object exports)
 {
-    exports["sync"] = Function::New(
+    exports["scan"] = Function::New(
         env, runMemoryReaderAsyncWorker, std::string("runMemoryReaderAsyncWorker"));
     return exports;
 }
