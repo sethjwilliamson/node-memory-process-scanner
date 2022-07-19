@@ -1,3 +1,4 @@
 const scan = require('./index');
+const scanAsync = require('./index');
 
-console.log(scan("Legends of Runeterra", "ROUND ([0-9]+)"))
+console.log(scan("Legends of Runeterra", "ROUND (1)"))
